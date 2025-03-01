@@ -69,7 +69,7 @@ env:
   TAG_NAME: "${{ inputs.upload-tag }}"
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
   # vcpkg version: 2024.07.12
-  VCPKG_COMMIT_ID: "b2cb0da531c2f1f740045bfe7c4dac59f0b2b69c"
+  VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836"
   VERSION: "${{ fromJson(inputs.extras).version }}"
   NDK_VERSION: "r27c"
   #signing keys env variable checks
@@ -298,7 +298,7 @@ jobs:
           wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
           echo -n "${{ inputs.custom }}" | cat > ./custom.txt
-          sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
+          # sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
           sed -i -e 's|https://admin.rustdesk.com|${{ inputs.apiServer }}|' ./src/common.rs
           
       - name: change url to custom
@@ -350,13 +350,6 @@ jobs:
         run: |
           wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/hidecm.diff
           git apply hidecm.diff
-
-      - name: statussort
-        continue-on-error: true
-        if: fromJson(inputs.extras).statussort == 'true'
-        run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/statussort.diff
-          git apply statussort.diff
         
       - name: removeNewVersionNotif
         continue-on-error: true
@@ -463,7 +456,7 @@ jobs:
               export JOBS=""
             fi
             echo $JOBS
-            cargo build --lib $JOBS --features hwcodec,flutter --release
+            cargo build --lib $JOBS --features hwcodec,flutter,unix-file-copy-paste --release
             rm -rf target/release/deps target/release/build
             rm -rf ~/.cargo
 
@@ -530,8 +523,8 @@ jobs:
             if [[ "${{ inputs.iconlink }}" != "false" ]]; then
               mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
               convert ./res/icon.png ./flutter/assets/icon.svg
-              convert ./res/128x128.png -resize 200% ./flutter/assets/128x128@2x.png
-              convert ./res/icon.png ./res/scalable.svg
+              convert ./res/128x128.png -resize 200% ./flutter/assets/128x128@2x.png || true
+              cp ./flutter/assets/icon.svg ./res/scalable.svg
               pushd ./flutter
               flutter pub get
               dart run flutter_launcher_icons

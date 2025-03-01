@@ -4,7 +4,8 @@ from PIL import Image
 class GenerateForm(forms.Form):
     #Platform
     platform = forms.ChoiceField(choices=[('windows','Windows'),('linux','Linux (currently unavailable)'),('android','Android'),('macos','macOS')], initial='windows')
-    version = forms.ChoiceField(choices=[('master','nightly'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], initial='1.3.7')
+    version = forms.ChoiceField(choices=[('master','nightly'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], initial='1.3.8')
+    help_text="'master' is the development version (nightly build) with the latest features but may be less stable"
     delayFix = forms.BooleanField(initial=True, required=False)
 
     #General
@@ -76,29 +77,29 @@ class GenerateForm(forms.Form):
     cycleMonitor = forms.BooleanField(initial=False, required=False)
     xOffline = forms.BooleanField(initial=False, required=False)
     hidecm = forms.BooleanField(initial=False, required=False)
-    statussort = forms.BooleanField(initial=False, required=False)
     removeNewVersionNotif = forms.BooleanField(initial=False, required=False)
 
     def clean_iconfile(self):
         print("checking icon")
         image = self.cleaned_data['iconfile']
-        try:
-            # Open the image using Pillow
-            img = Image.open(image)
+        if image:
+            try:
+                # Open the image using Pillow
+                img = Image.open(image)
 
-            # Check if the image is a PNG (optional, but good practice)
-            if img.format != 'PNG':
-                raise forms.ValidationError("Only PNG images are allowed.")
+                # Check if the image is a PNG (optional, but good practice)
+                if img.format != 'PNG':
+                    raise forms.ValidationError("Only PNG images are allowed.")
 
-            # Get image dimensions
-            width, height = img.size
+                # Get image dimensions
+                width, height = img.size
 
-            # Check for square dimensions
-            if width != height:
-                raise forms.ValidationError("Custom App Icon dimensions must be square.")
-            
-            return image
-        except OSError:  # Handle cases where the uploaded file is not a valid image
-            raise forms.ValidationError("Invalid icon file.")
-        except Exception as e: # Catch any other image processing errors
-            raise forms.ValidationError(f"Error processing icon: {e}")
+                # Check for square dimensions
+                if width != height:
+                    raise forms.ValidationError("Custom App Icon dimensions must be square.")
+                
+                return image
+            except OSError:  # Handle cases where the uploaded file is not a valid image
+                raise forms.ValidationError("Invalid icon file.")
+            except Exception as e: # Catch any other image processing errors
+                raise forms.ValidationError(f"Error processing icon: {e}")

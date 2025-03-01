@@ -69,7 +69,7 @@ env:
   TAG_NAME: "${{ inputs.upload-tag }}"
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
   # vcpkg version: 2024.07.12
-  VCPKG_COMMIT_ID: "b2cb0da531c2f1f740045bfe7c4dac59f0b2b69c"
+  VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836"
   VERSION: "${{ fromJson(inputs.extras).version }}"
   NDK_VERSION: "r27c"
   #signing keys env variable checks
@@ -372,7 +372,7 @@ jobs:
         run: |
           sed -i -e '/const KEY:/,/};/d' ./src/common.rs
           sed -i -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
-          sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
+          # sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
 
       - name: fix connection delay
         continue-on-error: true
@@ -401,13 +401,6 @@ jobs:
         run: |
           wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/hidecm.diff
           git apply hidecm.diff
-
-      - name: statussort
-        continue-on-error: true
-        if: fromJson(inputs.extras).statussort == 'true'
-        run: |
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/statussort.diff
-          git apply statussort.diff
 
       - name: removeNewVersionNotif
         continue-on-error: true
@@ -478,6 +471,15 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "45% complete"}'
 
+      - name: icons
+        if: ${{ inputs.iconlink != 'false' }}
+        continue-on-error: true
+        run: |
+          mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
+          convert ./res/icon.png ./flutter/assets/icon.svg
+          convert ./res/128x128.png -resize 200% ./flutter/assets/128x128@2x.png || true
+          cp ./flutter/assets/icon.svg ./res/scalable.svg
+
       - name: Build rustdesk
         shell: bash
         env:
@@ -493,12 +495,6 @@ jobs:
             cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
             echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
             #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
-            if [[ "${{ inputs.iconlink }}" != "false" ]]; then
-              mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
-              convert ./res/icon.png ./flutter/assets/icon.svg
-              convert ./res/128x128.png -resize 200% ./flutter/assets/128x128@2x.png
-              convert ./res/icon.png ./res/scalable.svg
-            fi
             # build flutter
             pushd flutter
             flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm64 --split-per-abi
@@ -510,12 +506,6 @@ jobs:
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/armeabi-v7a/librustdesk.so
               echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
               #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
-              if [[ "${{ inputs.iconlink }}" != "false" ]]; then
-                mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
-                convert ./res/icon.png ./flutter/assets/icon.svg
-                convert ./res/128x128.png -resize 200% ./flutter/assets/128x128@2x.png
-                convert ./res/icon.png ./res/scalable.svg
-              fi
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-arm --split-per-abi
@@ -527,12 +517,6 @@ jobs:
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86_64/librustdesk.so
               echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
               #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
-              if [[ "${{ inputs.iconlink }}" != "false" ]]; then
-                mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
-                convert ./res/icon.png ./flutter/assets/icon.svg
-                convert ./res/128x128.png -resize 200% ./flutter/assets/128x128@2x.png
-                convert ./res/icon.png ./res/scalable.svg
-              fi
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x64 --split-per-abi
@@ -544,12 +528,6 @@ jobs:
               cp ./target/${{ matrix.job.target }}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/x86/librustdesk.so
               echo -n "${{ inputs.custom }}" | cat > ./flutter/assets/custom.txt
               #sed -i '/^    - assets\//a\    - assets/custom.txt' ./flutter/pubspec.yaml
-              if [[ "${{ inputs.iconlink }}" != "false" ]]; then
-                mv ./flutter/assets/icon.svg ./flutter/assets/icon.svg.bak
-                convert ./res/icon.png ./flutter/assets/icon.svg
-                convert ./res/128x128.png -resize 200% ./flutter/assets/128x128@2x.png
-                convert ./res/icon.png ./res/scalable.svg
-              fi
               # build flutter
               pushd flutter
               flutter build apk "--${{ matrix.job.reltype }}" --target-platform android-x86 --split-per-abi
